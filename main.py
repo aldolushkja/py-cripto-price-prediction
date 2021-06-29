@@ -49,8 +49,19 @@ model.fit(x_train, y_train, epochs=25, batch_size=32)
 
 # Testing The Model
 
-test_start = dt.datetime(2020,1,1)
+test_start = dt.datetime(2020, 1, 1)
 test_end = dt.datetime.now()
 
 test_data = web.DataReader(f'{crypto_currency}-{against_currency}', 'yahoo', test_start, test_end)
+actual_prices = test_data['Close'].values
 
+total_dataset = pd.concat((data['Close'], test_data['Close']), axis=0)
+
+model_inputs = total_dataset[len(total_dataset) - len(test_data) - prediction_days:].values
+model_inputs = model_inputs.reshape(-1, 1)
+model_inputs = scaler.fit_transform(model_inputs)
+
+x_test = []
+
+for x in range(prediction_days, len(model_inputs)):
+    x_test.append(model_inputs[x - prediction_days:x, 0])
